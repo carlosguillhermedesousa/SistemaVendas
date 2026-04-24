@@ -1,0 +1,90 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="row justify-content-center align-items-center min-vh-80">
+  <div class="col-md-8 col-lg-6">
+    <div class="card rounded-4 shadow-lg border-0 overflow-hidden">
+      <div class="card-body p-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div>
+            <h2 class="fw-bold">{{ form_title }}</h2>
+            <p class="text-muted mb-0">Crie perfis para vendedores, gerentes e estoquistas.</p>
+          </div>
+          <div class="badge badge-status">Gerenciamento</div>
+        </div>
+        <form method="post" action="{{ form_action }}" class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label text-white">Nome completo</label>
+            <input type="text" class="form-control" name="name" required placeholder="Nome do usuário" value="{{ edit_user.name if edit_user else '' }}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-white">Usuário</label>
+            <input type="text" class="form-control" name="username" required placeholder="Login" value="{{ edit_user.username if edit_user else '' }}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-white">Senha</label>
+            <input type="password" class="form-control" name="password" {{ '' if edit_user else 'required' }} placeholder="{{ 'Nova senha ou deixe em branco para manter a atual' if edit_user else 'Senha segura' }}">
+            {% if edit_user %}
+            <div class="form-text text-muted">Deixe em branco para manter a senha atual.</div>
+            {% endif %}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-white">Perfil</label>
+            <select class="form-select" name="role" required>
+              <option value="vendedor" {% if edit_user and edit_user.role == 'vendedor' %}selected{% endif %}>Vendedor (PDV e clientes)</option>
+              <option value="gerente" {% if edit_user and edit_user.role == 'gerente' %}selected{% endif %}>Gerente (acesso total)</option>
+              <option value="estoquista" {% if edit_user and edit_user.role == 'estoquista' %}selected{% endif %}>Estoquista (estoque e produtos)</option>
+            </select>
+          </div>
+          <div class="col-12 d-flex gap-2">
+            <button class="btn btn-primary flex-fill">{{ submit_label }}</button>
+            <a href="{{ url_for('dashboard.index') }}" class="btn btn-outline-light flex-fill">Voltar</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row justify-content-center mt-4">
+  <div class="col-12">
+    <div class="card rounded-4 shadow-lg border-0 overflow-hidden">
+      <div class="card-body p-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div>
+            <h2 class="fw-bold">Usuários cadastrados</h2>
+            <p class="text-muted mb-0">Veja os logins e perfis criados no sistema.</p>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-dark table-hover align-middle">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Usuário</th>
+                <th>Perfil</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for user in users %}
+              <tr>
+                <td>{{ user.name }}</td>
+                <td>{{ user.username }}</td>
+                <td>{{ user.role }}</td>
+                <td>
+                  <a href="{{ url_for('auth.edit_user', id=user.id) }}" class="btn btn-sm btn-outline-light">Editar</a>
+                </td>
+              </tr>
+              {% else %}
+              <tr>
+                <td colspan="4" class="text-center text-muted">Nenhum usuário cadastrado.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

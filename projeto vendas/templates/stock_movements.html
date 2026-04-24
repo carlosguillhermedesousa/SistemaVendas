@@ -1,0 +1,38 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="section-header mb-4">
+  <div>
+    <h3>Movimentações de estoque</h3>
+    <p class="text-muted">Acompanhe todas as entradas e saídas de produtos.</p>
+  </div>
+</div>
+<div class="card p-4">
+  <div class="table-responsive">
+    <table class="table table-dark table-hover align-middle">
+      <thead>
+        <tr><th>Data</th><th>Produto</th><th>Tipo</th><th>Quantidade</th><th>Usuário</th><th>Descrição</th></tr>
+      </thead>
+      <tbody>
+        {% for mov in movements %}
+        <tr>
+          <td>{{ mov.datetime }}</td>
+          <td>{{ mov.product_name }}</td>
+          <td>
+            {% if mov.type == 'Entrada' %}
+            <span class="badge badge-status">Entrada</span>
+            {% else %}
+            <span class="badge badge-low">Saída</span>
+            {% endif %}
+          </td>
+          <td>{{ mov.quantity }}</td>
+          <td>{{ mov.user_name }}</td>
+          <td>{{ mov.description }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="text-center text-muted">Nenhuma movimentação registrada.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
