@@ -1,0 +1,407 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-12">
+    <div class="section-header">
+      <div>
+        <h3>PDV</h3>
+        <p class="text-muted">Venda rápida com controle de estoque em tempo real.</p>
+      </div>
+      <div class="d-flex gap-2">
+        <a href="{{ url_for('sales.sale_list') }}" class="btn btn-outline-light action-btn"><i class="fa-solid fa-receipt me-2"></i>Histórico</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    <div class="card p-4">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-6 position-relative search-group">
+          <label class="form-label text-white">Cliente</label>
+          <input type="text" class="form-control" id="customerSearch" placeholder="Buscar cliente..." autocomplete="off">
+          <div id="customerResults" class="search-results"></div>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label text-white">Desconto (%)</label>
+          <input class="form-control" type="number" min="0" max="100" step="0.01" name="discount" value="0">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label text-white">Senha gerente</label>
+          <input type="password" name="manager_password" class="form-control" id="managerPasswordVisible" placeholder=">5%">
+          <div class="form-text text-muted">Desconto acima de 5% exige senha de gerente.</div>
+        </div>
+      </div>
+
+      <div class="row g-3 mt-4">
+        <div class="col-md-8 position-relative search-group">
+          <label class="form-label text-white">Buscar produto</label>
+          <input type="text" class="form-control" id="productSearch" placeholder="Digite parte do nome ou código" autocomplete="off">
+          <div id="productResults" class="search-results"></div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label text-white">Quantidade</label>
+          <input class="form-control" type="number" id="quantityInput" value="1" min="1">
+        </div>
+      </div>
+
+      <div class="mt-4">
+        <button id="addToCartBtn" class="btn btn-primary w-100" disabled>Adicionar ao carrinho</button>
+      </div>
+
+      <div class="mt-5">
+        <div class="section-title mb-3">Carrinho de vendas</div>
+        <div class="table-responsive">
+          <table class="table table-dark table-hover align-middle">
+            <thead>
+              <tr><th>Produto</th><th>Qtd</th><th>Unitário</th><th>Subtotal</th><th>Ações</th></tr>
+            </thead>
+            <tbody id="cartTable">
+              {% for item in cart %}
+              <tr>
+                <td>{{ item.name }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>R$ {{ '%.2f'|format(item.unit_price) }}</td>
+                <td>R$ {{ '%.2f'|format(item.unit_price * item.quantity) }}</td>
+                <td>
+                  <form method="post" class="d-inline">
+                    <input type="hidden" name="action" value="remove">
+                    <input type="hidden" name="index" value="{{ loop.index0 }}">
+                    <button class="btn btn-sm btn-outline-light"><i class="fa-solid fa-trash-can"></i></button>
+                  </form>
+                </td>
+              </tr>
+              {% else %}
+              <tr id="emptyCart"><td colspan="5" class="text-center text-muted">Carrinho vazio.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card p-4 h-100 d-flex flex-column justify-content-between">
+      <div>
+        <div class="section-header mb-3">
+          <div>
+            <h3>Resumo de venda</h3>
+            <p class="text-muted">Confira os valores e finalize com rapidez.</p>
+          </div>
+        </div>
+        <div class="mb-4">
+          <div class="bg-slate-900 rounded-4 p-4">
+            <div class="d-flex justify-content-between mb-4">
+              <span class="text-muted">Itens no carrinho</span>
+              <span class="fw-semibold" id="cartCount">{{ cart|length }}</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-end">
+              <div>
+                <div class="text-muted">Total</div>
+                <div class="hero-value" id="totalAmount">R$ {{ '%.2f'|format(total) }}</div>
+              </div>
+              <i class="fa-solid fa-dollar-sign fa-2xl text-success"></i>
+            </div>
+          </div>
+        </div>
+        <form id="paymentForm" class="row g-3">
+          <div class="col-md-7">
+            <label class="form-label text-white">Forma de pagamento</label>
+            <select id="paymentMethodSelect" class="form-select">
+              <option value="">Selecione</option>
+              {% for pm in payment_methods %}
+              <option value="{{ pm.id }}">{{ pm.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-5">
+            <label class="form-label text-white">Valor</label>
+            <input type="number" id="paymentAmount" class="form-control" step="0.01" min="0.01" placeholder="R$ 0,00">
+          </div>
+          <div class="col-12 d-grid">
+            <button type="button" id="addPaymentBtn" class="btn btn-outline-light">Adicionar forma de pagamento</button>
+          </div>
+        </form>
+        <div class="mt-3">
+          <div class="section-title">Pagamentos adicionados</div>
+          <div class="list-group" id="paymentList"></div>
+        </div>
+        <form id="finalizeForm" method="post" class="row g-3 mt-3">
+          <input type="hidden" name="action" value="finalize">
+          <input type="hidden" name="customer_id" id="customerId">
+          <input type="hidden" name="discount" id="discountHidden">
+          <input type="hidden" name="manager_password" id="managerPasswordHidden">
+          <div id="paymentFields"></div>
+          <div class="col-12 d-grid">
+            <button class="btn btn-primary btn-lg">Finalizar venda</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal PIX -->
+<div class="modal fade" id="pixModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark text-white">
+      <div class="modal-header">
+        <h5 class="modal-title">Pagamento PIX</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center">
+        <p>Escaneie o QR Code para pagar via PIX</p>
+        <div id="qrCodeContainer"></div>
+        <p class="mt-3"><strong>Chave PIX:</strong> <span id="pixKey"></span></p>
+        <p><strong>Valor:</strong> R$ <span id="pixAmount"></span></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let selectedProduct = null;
+let cart = {{ cart|tojson }};
+let total = {{ total }};
+const currentUserRole = "{{ current_user.get('role') }}";
+
+// Busca de clientes
+document.getElementById('customerSearch').addEventListener('input', function() {
+  const query = this.value.trim();
+  const resultsDiv = document.getElementById('customerResults');
+  if (query.length < 2) {
+    resultsDiv.classList.remove('show');
+    resultsDiv.innerHTML = '';
+    return;
+  }
+  fetch(`/sales/search-customers?q=${encodeURIComponent(query)}`)
+    .then(r => r.json())
+    .then(data => {
+      if (!data.length) {
+        resultsDiv.innerHTML = '<div class="search-item">Nenhum cliente encontrado.</div>';
+      } else {
+        resultsDiv.innerHTML = data.map(c => `<div class="search-item" data-id="${c.id}">${c.name} - ${c.cpf_cnpj}</div>`).join('');
+      }
+      resultsDiv.classList.add('show');
+    });
+});
+
+document.getElementById('customerResults').addEventListener('click', function(e) {
+  if (e.target.classList.contains('search-item')) {
+    const id = e.target.dataset.id;
+    const name = e.target.textContent.split(' - ')[0];
+    document.getElementById('customerSearch').value = name;
+    document.getElementById('customerId').value = id;
+    document.getElementById('customerResults').innerHTML = '';
+  }
+});
+
+// Busca de produtos
+document.getElementById('productSearch').addEventListener('input', function() {
+  const query = this.value.trim();
+  const resultsDiv = document.getElementById('productResults');
+  if (query.length < 2) {
+    resultsDiv.classList.remove('show');
+    resultsDiv.innerHTML = '';
+    selectedProduct = null;
+    document.getElementById('addToCartBtn').disabled = true;
+    return;
+  }
+  fetch(`/sales/search-products?q=${encodeURIComponent(query)}`)
+    .then(r => r.json())
+    .then(data => {
+      if (!data.length) {
+        resultsDiv.innerHTML = '<div class="search-item">Nenhum produto encontrado.</div>';
+      } else {
+        resultsDiv.innerHTML = data.map(p => `<div class="search-item" data-id="${p.id}" data-price="${p.sale_price}" data-stock="${p.stock}">${p.name} - ${p.barcode} (R$ ${p.sale_price.toFixed(2)}) - Estoque: ${p.stock}</div>`).join('');
+      }
+      resultsDiv.classList.add('show');
+    });
+});
+
+document.getElementById('productResults').addEventListener('click', function(e) {
+  if (e.target.classList.contains('search-item')) {
+    const id = e.target.dataset.id;
+    const name = e.target.textContent.split(' - ')[0];
+    const stock = parseInt(e.target.dataset.stock);
+    document.getElementById('productSearch').value = name;
+    selectedProduct = { id, name, stock };
+    document.getElementById('productResults').innerHTML = '';
+    document.getElementById('addToCartBtn').disabled = false;
+  }
+});
+
+// Adicionar ao carrinho
+document.getElementById('addToCartBtn').addEventListener('click', function() {
+  if (!selectedProduct) return;
+  const quantity = parseInt(document.getElementById('quantityInput').value);
+  if (quantity < 1) return;
+  
+  // Verificar estoque
+  const existing = cart.find(item => item.product_id == selectedProduct.id);
+  const totalQty = (existing ? existing.quantity : 0) + quantity;
+  if (totalQty > selectedProduct.stock) {
+    alert('Estoque insuficiente!');
+    return;
+  }
+  
+  // Adicionar via formulário
+  const form = document.createElement('form');
+  form.method = 'post';
+  form.innerHTML = `
+    <input type="hidden" name="action" value="add">
+    <input type="hidden" name="product_id" value="${selectedProduct.id}">
+    <input type="hidden" name="quantity" value="${quantity}">
+  `;
+  document.body.appendChild(form);
+  form.submit();
+});
+
+// Pagamentos
+const paymentMethods = [
+  {% for pm in payment_methods %}
+  { id: {{ pm.id }}, name: '{{ pm.name }}' },
+  {% endfor %}
+];
+let selectedPayments = [];
+
+function renderPaymentList() {
+  const list = document.getElementById('paymentList');
+  const fields = document.getElementById('paymentFields');
+  list.innerHTML = '';
+  fields.innerHTML = '';
+  let totalPaid = 0;
+
+  selectedPayments.forEach((payment, index) => {
+    totalPaid += payment.amount;
+    const item = document.createElement('div');
+    item.className = 'list-group-item bg-slate-900 border-secondary d-flex justify-content-between align-items-center';
+    item.innerHTML = `
+      <div>
+        <div class="fw-semibold">${payment.name}</div>
+        <small class="text-muted">R$ ${payment.amount.toFixed(2)}</small>
+      </div>
+      <button type="button" class="btn btn-sm btn-outline-danger" data-index="${index}"><i class="fa-solid fa-trash-can"></i></button>
+    `;
+    list.appendChild(item);
+
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = `payment_${payment.id}`;
+    input.value = payment.amount.toFixed(2);
+    fields.appendChild(input);
+  });
+
+  const paymentInfo = document.getElementById('paymentInfo');
+  if (totalPaid > 0) {
+    if (!paymentInfo) {
+      const info = document.createElement('div');
+      info.id = 'paymentInfo';
+      info.className = 'mt-3';
+      info.innerHTML = `<div class="alert alert-info">Total pago: R$ ${totalPaid.toFixed(2)}</div>`;
+      document.getElementById('paymentList').after(info);
+    } else {
+      paymentInfo.innerHTML = `<div class="alert alert-info">Total pago: R$ ${totalPaid.toFixed(2)}</div>`;
+    }
+  } else if (paymentInfo) {
+    paymentInfo.remove();
+  }
+
+  document.querySelectorAll('[data-index]').forEach(button => {
+    button.addEventListener('click', function() {
+      const idx = Number(this.dataset.index);
+      selectedPayments.splice(idx, 1);
+      renderPaymentList();
+    });
+  });
+}
+
+document.getElementById('addPaymentBtn').addEventListener('click', function() {
+  const methodSelect = document.getElementById('paymentMethodSelect');
+  const amountInput = document.getElementById('paymentAmount');
+  const methodId = Number(methodSelect.value);
+  const amount = parseFloat(amountInput.value);
+  if (!methodId || !amount || amount <= 0) {
+    alert('Selecione forma de pagamento e informe valor válido.');
+    return;
+  }
+  const method = paymentMethods.find(pm => pm.id === methodId);
+  if (!method) {
+    alert('Forma de pagamento inválida.');
+    return;
+  }
+  const exists = selectedPayments.find(p => p.id === methodId);
+  if (exists) {
+    exists.amount += amount;
+  } else {
+    selectedPayments.push({ id: method.id, name: method.name, amount });
+  }
+  methodSelect.value = '';
+  amountInput.value = '';
+  renderPaymentList();
+});
+
+function generatePixQR(amount) {
+  fetch(`/sales/generate-pix/${amount}`)
+    .then(r => r.json())
+    .then(data => {
+      document.getElementById('qrCodeContainer').innerHTML = `<img src="data:image/png;base64,${data.qr_code}" class="img-fluid">`;
+      document.getElementById('pixKey').textContent = data.pix_key;
+      document.getElementById('pixAmount').textContent = data.amount.toFixed(2);
+      new bootstrap.Modal(document.getElementById('pixModal')).show();
+    });
+}
+
+const finalizeForm = document.getElementById('finalizeForm');
+if (finalizeForm) {
+  finalizeForm.addEventListener('submit', function(e) {
+    const discountInput = document.querySelector('input[name="discount"]');
+    const managerInput = document.getElementById('managerPasswordVisible');
+    const discountHidden = document.getElementById('discountHidden');
+    const managerHidden = document.getElementById('managerPasswordHidden');
+    const discount = parseFloat(discountInput.value) || 0;
+    const managerPassword = managerInput.value.trim();
+
+    discountHidden.value = discountInput.value;
+    managerHidden.value = managerPassword;
+
+    if (discount > 5 && currentUserRole !== 'gerente' && !managerPassword) {
+      e.preventDefault();
+      alert('Desconto acima de 5% exige senha de gerente. Informe a senha antes de finalizar.');
+    }
+  });
+}
+renderPaymentList();
+</script>
+
+<style>
+.search-results {
+  position: absolute;
+  background: #1f2937;
+  border: 1px solid #374151;
+  border-radius: 0.5rem;
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 1000;
+  width: 100%;
+  display: none;
+}
+.search-results.show {
+  display: block;
+}
+.search-group {
+  position: relative;
+}
+.search-item {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  border-bottom: 1px solid #374151;
+}
+.search-item:hover {
+  background: #374151;
+}
+.search-item:last-child {
+  border-bottom: none;
+}
+</style>
+{% endblock %}

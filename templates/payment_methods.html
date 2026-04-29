@@ -1,0 +1,46 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="section-header mb-4">
+  <div>
+    <h3>Formas de pagamento</h3>
+    <p class="text-muted">Gerencie as formas de pagamento disponíveis no sistema.</p>
+  </div>
+  <a href="{{ url_for('payment_methods.new_payment_method') }}" class="btn btn-primary action-btn">
+    <i class="fa-solid fa-plus me-2"></i>Nova forma
+  </a>
+</div>
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Status</th>
+          <th>Data cadastro</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for pm in payment_methods %}
+        <tr>
+          <td>{{ pm.name }}</td>
+          <td>
+            {% if pm.active %}
+              <span class="badge badge-active">Ativo</span>
+            {% else %}
+              <span class="badge badge-inactive">Inativo</span>
+            {% endif %}
+          </td>
+          <td>{{ pm.created_at }}</td>
+          <td>
+            <a href="{{ url_for('payment_methods.edit_payment_method', id=pm.id) }}" class="btn btn-sm btn-outline-primary">
+              <i class="fa-solid fa-edit"></i>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="section-header mb-4">
+  <div>
+    <h3>{{ 'Editar cliente' if customer else 'Novo cliente' }}</h3>
+    <p class="text-muted">Mantenha os dados de cliente completos e atualizados.</p>
+  </div>
+</div>
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="card p-4">
+      <form method="post" class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label text-white">Nome</label>
+          <input type="text" name="name" class="form-control" value="{{ customer.name if customer else '' }}" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label text-white">Tipo de cliente</label>
+          <select name="customer_type" class="form-select" required>
+            <option value="Pessoa Física" {% if customer and customer.customer_type == 'Pessoa Física' %}selected{% endif %}>Pessoa Física</option>
+            <option value="Pessoa Jurídica" {% if customer and customer.customer_type == 'Pessoa Jurídica' %}selected{% endif %}>Pessoa Jurídica</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label text-white">Sexo</label>
+          <select name="gender" class="form-select">
+            <option value="" {% if customer and not customer.gender %}selected{% endif %}>Não informado</option>
+            <option value="Masculino" {% if customer and customer.gender == 'Masculino' %}selected{% endif %}>Masculino</option>
+            <option value="Feminino" {% if customer and customer.gender == 'Feminino' %}selected{% endif %}>Feminino</option>
+            <option value="Outro" {% if customer and customer.gender == 'Outro' %}selected{% endif %}>Outro</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label text-white">CPF/CNPJ</label>
+          <input type="text" name="cpf_cnpj" class="form-control" value="{{ customer.cpf_cnpj if customer else '' }}" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label text-white">Email</label>
+          <input type="email" name="email" class="form-control" value="{{ customer.email if customer else '' }}" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label text-white">Telefone</label>
+          <input type="text" name="phone" class="form-control" value="{{ customer.phone if customer else '' }}">
+        </div>
+        <div class="col-12">
+          <label class="form-label text-white">Endereço</label>
+          <textarea name="address" class="form-control" rows="3">{{ customer.address if customer else '' }}</textarea>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label text-white">Status</label>
+          <select name="status" class="form-select">
+            <option value="Ativo" {% if customer and customer.status == 'Ativo' %}selected{% endif %}>Ativo</option>
+            <option value="Inativo" {% if customer and customer.status == 'Inativo' %}selected{% endif %}>Inativo</option>
+          </select>
+        </div>
+        <div class="col-12 d-flex gap-2">
+          <button class="btn btn-primary flex-fill">Salvar cliente</button>
+          <a href="{{ url_for('customers.list_customers') }}" class="btn btn-outline-light flex-fill">Cancelar</a>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="card p-4">
+      <div class="section-title">Histórico de compras</div>
+      {% if customer and purchases %}
+      <div class="list-group list-group-flush mt-3">
+        {% for buy in purchases %}
+        <div class="list-group-item bg-transparent border-secondary mb-2 rounded-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div class="fw-semibold">Venda #{{ buy.id }}</div>
+              <small class="text-muted">{{ buy.datetime }}</small>
+            </div>
+            <span class="badge badge-status">R$ {{ '%.2f'|format(buy.total_amount) }}</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="text-muted mt-3">Nenhuma compra registrada para este cliente.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

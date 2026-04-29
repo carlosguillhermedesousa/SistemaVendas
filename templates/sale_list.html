@@ -1,0 +1,48 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="section-header mb-4">
+  <div>
+    <h3>Vendas</h3>
+    <p class="text-muted">Registre estornos e visualize cupons de forma rápida.</p>
+  </div>
+  <a class="btn btn-primary action-btn" href="{{ url_for('sales.pdv') }}"><i class="fa-solid fa-cash-register me-2"></i>Abrir PDV</a>
+</div>
+<div class="card p-4">
+  <div class="table-responsive">
+    <table class="table table-dark table-hover align-middle">
+      <thead>
+        <tr><th>ID</th><th>Cliente</th><th>Atendente</th><th>Total</th><th>Pago</th><th>Data</th><th>Status</th><th>Ações</th></tr>
+      </thead>
+      <tbody>
+        {% for sale in sales %}
+        <tr>
+          <td>{{ sale.id }}</td>
+          <td>{{ sale.customer_name or 'Avulso' }}</td>
+          <td>{{ sale.user_name }}</td>
+          <td>R$ {{ '%.2f'|format(sale.total_amount) }}</td>
+          <td>{{ sale.payment_method }}</td>
+          <td>{{ sale.datetime }}</td>
+          <td>
+            {% if sale.returned %}
+            <span class="badge badge-low">Estornada</span>
+            {% else %}
+            <span class="badge badge-status">Concluída</span>
+            {% endif %}
+          </td>
+          <td class="text-nowrap">
+            <a class="btn btn-sm btn-outline-light me-1" href="{{ url_for('sales.receipt', sale_id=sale.id) }}"><i class="fa-solid fa-receipt"></i></a>
+            {% if not sale.returned %}
+            <form method="post" action="{{ url_for('sales.sale_return', sale_id=sale.id) }}" class="d-inline">
+              <button class="btn btn-sm btn-danger"><i class="fa-solid fa-rotate-left"></i></button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="text-center text-muted">Nenhuma venda registrada.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
