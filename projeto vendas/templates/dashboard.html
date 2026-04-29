@@ -1,0 +1,130 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-md-6 col-xl-3">
+    <div class="card card-hero p-4 shadow-sm">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <span class="section-title">Total de vendas</span>
+        <i class="fa-solid fa-chart-line fa-xl text-info"></i>
+      </div>
+      <div class="hero-value">{{ total_vendas }}</div>
+      <p class="text-muted mb-0">Transações concluídas</p>
+    </div>
+  </div>
+
+  <div class="col-md-6 col-xl-3">
+    <div class="card card-hero p-4 shadow-sm">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <span class="section-title">Receita</span>
+        <i class="fa-solid fa-wallet fa-xl text-success"></i>
+      </div>
+      <div class="hero-value">R$ {{ '%.2f'|format(receita) }}</div>
+      <p class="text-muted mb-0">Valor bruto das vendas</p>
+    </div>
+  </div>
+
+  <div class="col-md-6 col-xl-3">
+    <div class="card card-hero p-4 shadow-sm">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <span class="section-title">Estoque baixo</span>
+        <i class="fa-solid fa-box-open fa-xl text-warning"></i>
+      </div>
+      <div class="hero-value">{{ produtos_baixo }}</div>
+      <p class="text-muted mb-0">Produtos alertados</p>
+    </div>
+  </div>
+
+  <div class="col-md-6 col-xl-3">
+    <div class="card card-hero p-4 shadow-sm">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <span class="section-title">Vendas recentes</span>
+        <i class="fa-solid fa-clock fa-xl text-secondary"></i>
+      </div>
+      <div class="hero-value">{{ vendas_recentes|length }}</div>
+      <p class="text-muted mb-0">Últimas movimentações</p>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mt-1">
+  <div class="col-xl-7">
+    <div class="card p-4">
+      <div class="section-header mb-3">
+        <div>
+          <h3>Vendas recentes</h3>
+          <p class="text-muted mb-0">Acompanhe o desempenho das últimas transações.</p>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-dark table-hover align-middle">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Cliente</th>
+              <th>Total</th>
+              <th>Data</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for sale in vendas_recentes %}
+            <tr>
+              <td>{{ sale.id }}</td>
+              <td>{{ sale.customer_name or 'Avulso' }}</td>
+              <td>R$ {{ '%.2f'|format(sale.total_amount) }}</td>
+              <td>{{ sale.datetime }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" class="text-center text-muted">Nenhuma venda recente</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-5">
+    <div class="card p-4 h-100">
+      <div class="section-header mb-3">
+        <div>
+          <h3>Desempenho</h3>
+          <p class="text-muted mb-0">Gráfico de vendas recentes</p>
+        </div>
+      </div>
+      <canvas id="salesChart" data-labels='{{ vendas_recentes|map(attribute="datetime")|list|tojson }}' data-values='{{ vendas_recentes|map(attribute="total_amount")|list|tojson }}'></canvas>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mt-1">
+  <div class="col-12">
+    <div class="card p-4">
+      <div class="section-header mb-3">
+        <div>
+          <h3>Movimentações recentes</h3>
+          <p class="text-muted mb-0">Últimas entradas e saídas de estoque registradas.</p>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-dark table-hover align-middle">
+          <thead>
+            <tr><th>Data</th><th>Produto</th><th>Tipo</th><th>Qtd</th><th>Usuário</th></tr>
+          </thead>
+          <tbody>
+            {% for mov in movimentos_recentes %}
+            <tr>
+              <td>{{ mov.datetime }}</td>
+              <td>{{ mov.product_name }}</td>
+              <td>{{ mov.type }}</td>
+              <td>{{ mov.quantity }}</td>
+              <td>{{ mov.user_name }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="text-center text-muted">Nenhuma movimentação recente</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
