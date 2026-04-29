@@ -27,6 +27,16 @@ def _ensure_customer_columns(conn):
         conn.execute("ALTER TABLE customers ADD COLUMN customer_type TEXT NOT NULL DEFAULT 'Pessoa Física';")
     if 'gender' not in columns:
         conn.execute("ALTER TABLE customers ADD COLUMN gender TEXT;")
+    if 'cep' not in columns:
+        conn.execute("ALTER TABLE customers ADD COLUMN cep TEXT;")
+    if 'address_number' not in columns:
+        conn.execute("ALTER TABLE customers ADD COLUMN address_number TEXT;")
+    if 'bairro' not in columns:
+        conn.execute("ALTER TABLE customers ADD COLUMN bairro TEXT;")
+    if 'cidade' not in columns:
+        conn.execute("ALTER TABLE customers ADD COLUMN cidade TEXT;")
+    if 'estado' not in columns:
+        conn.execute("ALTER TABLE customers ADD COLUMN estado TEXT;")
 
 
 def init_db(app):
@@ -52,8 +62,8 @@ def init_db(app):
                 ('Estoquista Padrão', 'estoquista', hash_password('estoquista123'), 'estoquista')
             )
             conn.execute(
-                'INSERT INTO customers (name, cpf_cnpj, customer_type, gender, email, status) VALUES (?, ?, ?, ?, ?, ?);',
-                ('Eletro Comercial', '12345678909', 'Pessoa Jurídica', 'Outro', 'compras@eletrotech.com.br', 'Ativo')
+                'INSERT INTO customers (name, cpf_cnpj, customer_type, gender, email, phone, cep, address, address_number, bairro, cidade, estado, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);',
+                ('Eletro Comercial', '12345678909', 'Pessoa Jurídica', 'Outro', 'compras@eletrotech.com.br', '63992254255', '79000000', 'Av. das Indústrias', '100', 'Centro', 'Campo Grande', 'MS', 'Ativo')
             )
             conn.execute(
                 'INSERT INTO products (barcode, name, category, cost_price, margin, sale_price, stock, min_stock) VALUES (?, ?, ?, ?, ?, ?, ?, ?);',

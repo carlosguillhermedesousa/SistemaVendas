@@ -42,9 +42,29 @@
           <label class="form-label text-white">Telefone</label>
           <input type="text" name="phone" class="form-control" value="{{ customer.phone if customer else '' }}">
         </div>
-        <div class="col-12">
+        <div class="col-md-6">
+          <label class="form-label text-white">CEP</label>
+          <input id="cepField" type="text" name="cep" class="form-control" value="{{ customer.cep if customer else '' }}">
+        </div>
+        <div class="col-md-8">
           <label class="form-label text-white">Endereço</label>
-          <textarea name="address" class="form-control" rows="3">{{ customer.address if customer else '' }}</textarea>
+          <input type="text" name="address" class="form-control" value="{{ customer.address if customer else '' }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label text-white">Número</label>
+          <input type="text" name="address_number" class="form-control" value="{{ customer.address_number if customer else '' }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label text-white">Bairro</label>
+          <input type="text" name="bairro" class="form-control" value="{{ customer.bairro if customer else '' }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label text-white">Cidade</label>
+          <input type="text" name="cidade" class="form-control" value="{{ customer.cidade if customer else '' }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label text-white">Estado</label>
+          <input type="text" name="estado" class="form-control" value="{{ customer.estado if customer else '' }}">
         </div>
         <div class="col-md-6">
           <label class="form-label text-white">Status</label>
@@ -83,4 +103,32 @@
     </div>
   </div>
 </div>
+<script>
+  const cepField = document.getElementById('cepField');
+  if (cepField) {
+    cepField.addEventListener('blur', async () => {
+      const cep = cepField.value.replace(/\D/g, '');
+      if (cep.length !== 8) {
+        return;
+      }
+      try {
+        const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+        const data = await res.json();
+        if (data.erro) {
+          return;
+        }
+        const setField = (name, value) => {
+          const el = document.querySelector(`[name="${name}"]`);
+          if (el && value) el.value = value;
+        };
+        setField('address', `${data.logradouro || ''} ${data.complemento || ''}`.trim());
+        setField('bairro', data.bairro || '');
+        setField('cidade', data.localidade || '');
+        setField('estado', data.uf || '');
+      } catch (error) {
+        console.error('Erro ao consultar CEP:', error);
+      }
+    });
+  }
+</script>
 {% endblock %}

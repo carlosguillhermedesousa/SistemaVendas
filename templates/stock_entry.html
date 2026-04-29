@@ -2,28 +2,80 @@
 {% block content %}
 <div class="section-header mb-4">
   <div>
-    <h3>Entrada de estoque</h3>
-    <p class="text-muted">Registre a reposição de estoque e mantenha o inventário atualizado.</p>
+    <h3>Movimentação de estoque</h3>
+    <p class="text-muted">Registre entradas e saídas de estoque com atualização imediata do inventário.</p>
   </div>
 </div>
-<div class="card p-4">
-  <form method="post" class="row g-4 align-items-end">
-    <div class="col-md-7">
-      <label class="form-label text-white">Produto</label>
-      <select class="form-select" name="product_id" required>
-        <option value="">Selecione o produto</option>
-        {% for product in products %}
-        <option value="{{ product.id }}">{{ product.name }} ({{ product.barcode }})</option>
-        {% endfor %}
-      </select>
+<div class="row g-4">
+  <div class="col-lg-5">
+    <div class="card p-4">
+      <form method="post" class="row g-4">
+        <div class="col-12">
+          <label class="form-label text-white">Tipo de movimentação</label>
+          <select class="form-select" name="movement_type" required>
+            <option value="Entrada">Entrada</option>
+            <option value="Saída">Saída</option>
+          </select>
+        </div>
+        <div class="col-12">
+          <label class="form-label text-white">Produto</label>
+          <select class="form-select" name="product_id" required>
+            <option value="">Selecione o produto</option>
+            {% for product in products %}
+            <option value="{{ product.id }}">{{ product.name }} ({{ product.barcode }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label text-white">Quantidade</label>
+          <input class="form-control" name="quantity" type="number" min="1" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label text-white">Motivo / descrição</label>
+          <input class="form-control" name="description" type="text" placeholder="Ex: Reposição, perda, ajuste">
+        </div>
+        <div class="col-12 d-grid">
+          <button class="btn btn-primary">Registrar movimentação</button>
+        </div>
+      </form>
     </div>
-    <div class="col-md-3">
-      <label class="form-label text-white">Quantidade</label>
-      <input class="form-control" name="quantity" type="number" min="1" required>
+  </div>
+  <div class="col-lg-7">
+    <div class="card p-4">
+      <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+          <span class="section-title">Últimos movimentos</span>
+          <p class="text-muted mb-0">Veja as últimas entradas e saídas registradas.</p>
+        </div>
+      </div>
+      <div class="table-responsive table-fixed-height">
+        <table class="table table-dark table-hover align-middle">
+          <thead>
+            <tr><th>Produto</th><th>Tipo</th><th>Qtde</th><th>Usuário</th><th>Descrição</th><th>Data</th></tr>
+          </thead>
+          <tbody>
+            {% for movement in movements %}
+            <tr>
+              <td>{{ movement.product_name }}</td>
+              <td>
+                {% if movement.type == 'Entrada' %}
+                <span class="badge badge-status">Entrada</span>
+                {% else %}
+                <span class="badge badge-low">Saída</span>
+                {% endif %}
+              </td>
+              <td>{{ movement.quantity }}</td>
+              <td>{{ movement.user_name }}</td>
+              <td>{{ movement.description }}</td>
+              <td>{{ movement.datetime }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" class="text-center text-muted">Nenhuma movimentação registrada.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
-    <div class="col-md-2 d-grid">
-      <button class="btn btn-primary">Registrar</button>
-    </div>
-  </form>
+  </div>
 </div>
 {% endblock %}

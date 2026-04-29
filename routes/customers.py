@@ -43,7 +43,12 @@ def new_customer():
         gender = request.form.get('gender', '').strip()
         email = request.form['email'].strip()
         phone = request.form.get('phone', '').strip()
+        cep = request.form.get('cep', '').strip()
         address = request.form.get('address', '').strip()
+        address_number = request.form.get('address_number', '').strip()
+        bairro = request.form.get('bairro', '').strip()
+        cidade = request.form.get('cidade', '').strip()
+        estado = request.form.get('estado', '').strip()
         status = request.form['status']
         if not (name and cpf_cnpj and email and customer_type):
             flash('Preencha todos os campos obrigatórios.', 'warning')
@@ -62,8 +67,8 @@ def new_customer():
             flash('Cliente com o mesmo CPF/CNPJ ou email já existe.', 'warning')
             return redirect(url_for('customers.new_customer'))
         execute_db(
-            'INSERT INTO customers (name, cpf_cnpj, customer_type, gender, email, phone, address, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?);',
-            (name, cpf_cnpj, customer_type, gender, email, phone, address, status)
+            'INSERT INTO customers (name, cpf_cnpj, customer_type, gender, email, phone, cep, address, address_number, bairro, cidade, estado, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);',
+            (name, cpf_cnpj, customer_type, gender, email, phone, cep, address, address_number, bairro, cidade, estado, status)
         )
         flash('Cliente cadastrado com sucesso.', 'success')
         return redirect(url_for('customers.list_customers'))
@@ -104,9 +109,15 @@ def edit_customer(id):
         if existing:
             flash('Outro cliente com o mesmo CPF/CNPJ ou email já existe.', 'warning')
             return redirect(url_for('customers.edit_customer', id=id))
+        cep = request.form.get('cep', '').strip()
+        address = request.form.get('address', '').strip()
+        address_number = request.form.get('address_number', '').strip()
+        bairro = request.form.get('bairro', '').strip()
+        cidade = request.form.get('cidade', '').strip()
+        estado = request.form.get('estado', '').strip()
         execute_db(
-            'UPDATE customers SET name = ?, cpf_cnpj = ?, customer_type = ?, gender = ?, email = ?, phone = ?, address = ?, status = ? WHERE id = ?;', 
-            (name, cpf_cnpj, customer_type, gender, email, phone, address, status, id)
+            'UPDATE customers SET name = ?, cpf_cnpj = ?, customer_type = ?, gender = ?, email = ?, phone = ?, cep = ?, address = ?, address_number = ?, bairro = ?, cidade = ?, estado = ?, status = ? WHERE id = ?;', 
+            (name, cpf_cnpj, customer_type, gender, email, phone, cep, address, address_number, bairro, cidade, estado, status, id)
         )
         flash('Cliente atualizado com sucesso.', 'success')
         return redirect(url_for('customers.list_customers'))

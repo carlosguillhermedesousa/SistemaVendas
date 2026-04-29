@@ -44,46 +44,64 @@
     </div>
   </div>
 </div>
-
-<div class="row justify-content-center mt-4">
+<div class="row g-4 mt-4">
+  <div class="col-12 col-xl-4">
+    <div class="card p-4">
+      <span class="section-title">Busca dinâmica</span>
+      <div class="mt-3">
+        <input id="searchUsers" data-search-target="#usersTable" type="text" class="form-control" placeholder="Filtrar usuários...">
+      </div>
+    </div>
+  </div>
   <div class="col-12">
-    <div class="card rounded-4 shadow-lg border-0 overflow-hidden">
-      <div class="card-body p-5">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-          <div>
-            <h2 class="fw-bold">Usuários cadastrados</h2>
-            <p class="text-muted mb-0">Veja os logins e perfis criados no sistema.</p>
-          </div>
+    <div class="card p-4">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3 mb-3">
+        <div>
+          <span class="section-title">Usuários cadastrados</span>
+          <p class="text-muted mb-0">Veja os logins e perfis criados no sistema.</p>
         </div>
-        <div class="table-responsive">
-          <table class="table table-dark table-hover align-middle">
-            <thead>
-              <tr>
-                <th>Nome</th>
-                <th>Usuário</th>
-                <th>Perfil</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for user in users %}
-              <tr>
-                <td>{{ user.name }}</td>
-                <td>{{ user.username }}</td>
-                <td>{{ user.role }}</td>
-                <td>
-                  <a href="{{ url_for('auth.edit_user', id=user.id) }}" class="btn btn-sm btn-outline-light">Editar</a>
-                </td>
-              </tr>
-              {% else %}
-              <tr>
-                <td colspan="4" class="text-center text-muted">Nenhum usuário cadastrado.</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+        <div class="d-flex align-items-center gap-2">
+          <label class="text-white mb-0">Itens por página</label>
+          <select id="itemsPerPageUsers" class="form-select w-auto">
+            <option value="10">10</option>
+            <option value="15" selected>15</option>
+            <option value="20">20</option>
+            <option value="30">30</option>
+            <option value="50">50</option>
+          </select>
         </div>
       </div>
+      <div class="table-responsive table-fixed-height">
+        <table id="usersTable" class="table table-dark table-hover align-middle">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Usuário</th>
+              <th>Perfil</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for user in users %}
+            <tr data-row>
+              <td>{{ user.name }}</td>
+              <td>{{ user.username }}</td>
+              <td>{{ user.role }}</td>
+              <td>
+                <a href="{{ url_for('auth.edit_user', id=user.id) }}" class="btn btn-sm btn-outline-light">Editar</a>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="4" class="text-center text-muted">Nenhum usuário cadastrado.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <nav aria-label="Paginação de usuários" class="mt-3">
+        <ul id="paginationControlsUsers" class="pagination pagination-sm justify-content-center mb-0"></ul>
+      </nav>
     </div>
   </div>
 </div>

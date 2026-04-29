@@ -35,11 +35,10 @@ def search_products():
 @sales_bp.route('/generate-pix/<float:amount>')
 @login_required
 def generate_pix(amount):
-    # Simulação de chave PIX (email)
-    pix_key = 'compras@eletrotech.com.br'
+    pix_key = '63992254255'
     description = f'Pagamento EletroTech - R$ {amount:.2f}'
     
-    # Gerar QR Code
+    # Gerar QR Code PIX
     qr = qrcode.QRCode(version=1, box_size=10, border=5)
     qr.add_data(f'pix:{pix_key}?amount={amount}&description={description}')
     qr.make(fit=True)
@@ -121,45 +120,48 @@ def pdv():
                 return redirect(url_for('sales.pdv'))
             subtotal = _cart_total(cart)
             total_amount = round(subtotal * (1 - discount / 100.0), 2)
-            
-            # Processar pagamentos múltiplos
+
             payments = []
             total_paid = 0.0
+            payment_names = {pm['id']: pm['name'] for pm in payment_methods}
             for pm in payment_methods:
                 amount_str = request.form.get(f'payment_{pm["id"]}')
                 if amount_str:
                     try:
                         amount = float(amount_str)
                         if amount > 0:
-                            payments.append({'method_id': pm['id'], 'amount': amount})
+                            payments.append({
+                                'method_id': pm['id'],
+                                'amount': amount,
+                                'method_name': payment_names.get(pm['id'], 'Pagamento')
+                            })
                             total_paid += amount
                     except ValueError:
                         pass
-            
-            if abs(total_paid - total_amount) > 0.01:
+
+            if total_paid + 0.01 < total_amount:
                 flash('Total pago não corresponde ao valor da venda.', 'danger')
                 return redirect(url_for('sales.pdv'))
-            
-            # Verificar estoque
+
+            change_amount = round(max(0.0, total_paid - total_amount), 2)
+            payment_method = 'Múltiplas' if len(payments) != 1 else payments[0]['method_name']
+
             for item in cart:
                 product = query_db('SELECT * FROM products WHERE id = ?;', (item['product_id'],), one=True)
                 if not product or item['quantity'] > product['stock']:
                     flash(f'Estoque insuficiente para {item["name"]}.', 'danger')
                     return redirect(url_for('sales.pdv'))
-            
-            # Criar venda
+
             sale_id = execute_db(
                 'INSERT INTO sales (customer_id, user_id, datetime, total_amount, discount, payment_method, cash_received, change_amount, coupon, returned) '
-                'VALUES (?, ?, CURRENT_TIMESTAMP, ?, ?, ?, 0, 0, ?, 0);',
-                (customer_id or None, session['user_id'], total_amount, discount, 'Múltiplas', 'CUPOM-ELETROTECH')
+                'VALUES (?, ?, CURRENT_TIMESTAMP, ?, ?, ?, ?, ?, ?, 0);',
+                (customer_id or None, session['user_id'], total_amount, discount, payment_method, total_paid, change_amount, 'CUPOM-ELETROTECH')
             )
-            
-            # Inserir pagamentos
+
             for payment in payments:
-                execute_db('INSERT INTO sale_payments (sale_id, payment_method_id, amount) VALUES (?, ?, ?);', 
+                execute_db('INSERT INTO sale_payments (sale_id, payment_method_id, amount) VALUES (?, ?, ?);',
                           (sale_id, payment['method_id'], payment['amount']))
-            
-            # Inserir itens e atualizar estoque
+
             for item in cart:
                 execute_db(
                     'INSERT INTO sale_items (sale_id, product_id, quantity, unit_price, total_price) VALUES (?, ?, ?, ?, ?);',

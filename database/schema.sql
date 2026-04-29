@@ -17,7 +17,12 @@ CREATE TABLE IF NOT EXISTS customers (
     gender TEXT,
     email TEXT NOT NULL UNIQUE,
     phone TEXT,
+    cep TEXT,
     address TEXT,
+    address_number TEXT,
+    bairro TEXT,
+    cidade TEXT,
+    estado TEXT,
     status TEXT NOT NULL DEFAULT 'Ativo',
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );

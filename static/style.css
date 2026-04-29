@@ -258,6 +258,20 @@ body, .card, .btn, .form-control, .form-select, .nav-link, .table tbody tr, .ale
 .toast-container {
   position: fixed;
   top: 1rem;
+}
+
+.table-fixed-height {
+  max-height: 560px;
+  overflow-y: auto;
+}
+
+.table-fixed-height table thead th {
+  position: sticky;
+  top: 0;
+  background: #111827;
+  z-index: 2;
+}
+
   right: 1rem;
   z-index: 1080;
 }

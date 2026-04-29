@@ -1,5 +1,5 @@
 import os
-from flask import Flask
+from flask import Flask, redirect, request, session, url_for
 from models.db import init_db
 
 
@@ -32,5 +32,24 @@ def create_app():
     app.register_blueprint(stock_bp)
     app.register_blueprint(sales_bp)
     app.register_blueprint(payment_methods_bp)
+
+    @app.before_request
+    def require_login():
+        if request.endpoint is None:
+            return None
+        if request.endpoint == 'static':
+            return None
+        if request.endpoint.startswith('auth.'):
+            return None
+        if 'user_id' not in session:
+            return redirect(url_for('auth.login'))
+        return None
+
+    @app.after_request
+    def add_no_cache_headers(response):
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, private, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        return response
 
     return app
